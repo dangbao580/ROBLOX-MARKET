@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIKORIN — Game Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #090b10;
+      --surface:   #0f1219;
+      --card-bg:   #141720;
+      --border:    rgba(255,255,255,0.06);
+      --accent:    #00e5ff;
+      --accent2:   #ff3cac;
+      --gold:      #ffd740;
+      --text:      #e8eaf0;
+      --muted:     #6b7280;
+      --glow:      0 0 18px rgba(0,229,255,0.35);
+      --glow2:     0 0 18px rgba(255,60,172,0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Navbar ── */
+    .nx-nav {
+      background: rgba(9,11,16,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nx-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.35rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      text-decoration: none;
+    }
+    .nx-logo span { color: var(--accent2); }
+
+    /* ── Section ── */
+    .nx-section { position: relative; z-index: 1; padding: 2.5rem 0 0.5rem; }
+
+    .nx-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.2rem;
+      padding: 0 1.25rem;
+    }
+    .nx-section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .nx-section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 1.1em;
+      background: var(--accent);
+      border-radius: 2px;
+      box-shadow: var(--glow);
+    }
+    .nx-section-title.pink::before { background: var(--accent2); box-shadow: var(--glow2); }
+
+    .nx-see-all {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nx-see-all:hover { color: var(--accent); }
+
+    /* ── Scroll Wrapper ── */
+    .nx-scroll-wrapper {
+      position: relative;
+    }
+
+    /* Fade edges */
+    .nx-scroll-wrapper::before,
+    .nx-scroll-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 1.4rem;
+      width: 56px;
+      pointer-events: none;
+      z-index: 3;
+      transition: opacity 0.25s;
+    }
+    .nx-scroll-wrapper::before {
+      left: 0;
+      background: linear-gradient(to right, var(--bg), transparent);
+    }
+    .nx-scroll-wrapper::after {
+      right: 0;
+      background: linear-gradient(to left, var(--bg), transparent);
+    }
+    .nx-scroll-wrapper.at-start::before { opacity: 0; }
+    .nx-scroll-wrapper.at-end::after    { opacity: 0; }
+
+    /* ── Arrow Buttons ── */
+    .nx-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(calc(-50% - 0.7rem));
+      z-index: 4;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(15,18,25,0.9);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.2s ease,
+                  transform 0.2s ease,
+                  background 0.18s ease,
+                  box-shadow 0.18s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.55);
+    }
+    .nx-arrow svg {
+      width: 15px; height: 15px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .nx-arrow-left  { left: 8px; }
+    .nx-arrow-right { right: 8px; }
+
+    .nx-arrow:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: var(--glow);
+      transform: translateY(calc(-50% - 0.7rem)) scale(1.1);
+    }
+    .nx-arrow.pink:hover {
+      background: var(--accent2);
+      color: #fff;
+      box-shadow: var(--glow2);
+      transform: translateY(calc(-50% - 0.7rem)) scale(1.1);
+    }
+
+    /* Hidden = invisible + non-interactive */
+    .nx-arrow.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(calc(-50% - 0.7rem)) scale(0.75);
+    }
+
+    /* ── Scroll Track ── */
+    .nx-scroll-track {
+      display: flex;
+      gap: 0.9rem;
+      overflow-x: auto;
+      overflow-y: visible;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 0.4rem 1.25rem 1.4rem;
+      scrollbar-width: none;
+    }
+    .nx-scroll-track::-webkit-scrollbar { display: none; }
+
+    /* ── Game Card ── */
+    .nx-card {
+      flex: 0 0 auto;
+      width: 148px;
+      scroll-snap-align: start;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.22s cubic-bezier(.34,1.56,.64,1),
+                  box-shadow 0.22s ease,
+                  border-color 0.22s ease;
+      position: relative;
+    }
+    .nx-card:hover {
+      transform: translateY(-6px) scale(1.025);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.5), var(--glow);
+      border-color: rgba(0,229,255,0.3);
+    }
+    .nx-card.pink:hover {
+      box-shadow: 0 12px 36px rgba(0,0,0,0.5), var(--glow2);
+      border-color: rgba(255,60,172,0.3);
+    }
+
+    .nx-card-thumb {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .nx-card:hover .nx-card-thumb { transform: scale(1.06); }
+
+    .nx-card-thumb-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+    .nx-card-thumb-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.5s ease;
+      pointer-events: none;
+    }
+    .nx-card:hover .nx-card-thumb-wrap::after { transform: translateX(100%); }
+
+    .nx-badge {
+      position: absolute;
+      top: 8px; left: 8px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      border-radius: 4px;
+      padding: 0.2rem 0.45rem;
+      z-index: 2;
+    }
+    .nx-badge-new  { background: var(--accent);  color: #000; }
+    .nx-badge-hot  { background: var(--accent2); color: #fff; }
+    .nx-badge-sale { background: var(--gold);    color: #000; }
+    .nx-badge-free { background: #1dbe72;        color: #000; }
+
+    .nx-card-body { padding: 0.6rem 0.65rem 0.7rem; }
+    .nx-card-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nx-card-genre {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+    .nx-card-price {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .nx-card.pink .nx-card-price { color: var(--accent2); }
+    .nx-card-price .old-price {
+      font-size: 0.65rem;
+      font-weight: 400;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-left: 0.3rem;
+    }
+    .nx-card-price.free { color: #1dbe72; }
+    .nx-stars { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.05em; }
+
+    /* ── Divider ── */
+    .nx-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0.5rem 1.25rem;
+    }
+
+    /* ── Footer ── */
+    .nx-footer {
+      border-top: 1px solid var(--border);
+      padding: 1.8rem 0;
+      margin-top: 3rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    .nx-footer strong { color: var(--accent); }
+
+    /* ── Responsive ── */
+    @media (min-width: 768px) {
+      .nx-card { width: 162px; }
+    }
+    @media (min-width: 1200px) {
+      .nx-card { width: 175px; }
+    }
+    
+    /* ── Modal ── */
+    .nx-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .nx-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    .nx-modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--accent);
+      box-shadow: var(--glow);
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      animation: modalSlide 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    @keyframes modalSlide {
+      from { transform: translateY(30px) scale(0.9); }
+      to { transform: translateY(0) scale(1); }
+    }
+    .nx-modal-close {
+      position: absolute;
+      top: 15px; right: 15px;
+      background: rgba(255,255,255,0.1);
+      border: none; color: #fff;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      cursor: pointer; z-index: 10;
+    }
+    .nx-modal-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-bottom: 1px solid var(--border);
+    }
+    .nx-modal-body { padding: 1.5rem; }
+    .nx-modal-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .nx-modal-info { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+.nx-modal-price {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--accent); /* Đổi sang màu xanh dương sáng hoặc mã màu bạn thích */
+      margin-bottom: 1.5rem;
+    }
+    .nx-btn-buy {
+      width: 100%;
+      font-family: 'Times New Roman', Times, serif;
+      padding: 12px;
+      background: var(--accent);
+      border: none; border-radius: 8px;
+      font-weight: 700; font-family:'Times New Roman', Times, serif;
+      color: #000;
+      margin-bottom: 10px;
+      transition: 0.3s;
+    }
+    .nx-btn-buy:hover { box-shadow: var(--glow); transform: scale(1.02); }
+  </style>
+</head>
+<body>
+
+  <nav class="nx-nav">
+    <div class="container-fluid px-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <a class="nx-logo" href="#">MIKO<span>RIN</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="nx-section">
+    <div class="nx-section-header">
+      <span class="nx-section-title">ITEM CÀY THUÊ</span>
+    </div>
+
+<div class="nx-scroll-wrapper at-start" data-track="track1">
+      <button class="nx-arrow nx-arrow-left hidden" data-dir="left" aria-label="Scroll left">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="nx-arrow nx-arrow-right" data-dir="right" aria-label="Scroll right">
+        <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+      </button>
+
+      <div class="nx-scroll-track" id="track1">
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245682/Chi%C3%AAu_F_a30coa.webp" alt="Mở khóa chiêu F" loading="lazy">
+    <span class="nx-badge nx-badge-new">NEW</span>
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Mở khóa chiêu F</div>
+    <div class="nx-card-genre">Kĩ năng bất kì</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245681/Saber_Alter_b5imjz.jpg" alt="Saber Alter" loading="lazy">
+    <span class="nx-badge nx-badge-hot">HOT</span>
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Saber Alter</div>
+        <div class="nx-card-genre"></div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">129.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245681/True_Aizen_fvyci2.png" alt="True Aizen" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày True Aizen</div>
+        <div class="nx-card-genre"></div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">109.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245680/Aizen_v1_fkhfcq.jpg" alt="Aizen V1" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Aizen V1</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★☆</div>
+    <div class="nx-card-price">29.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245678/Blessed_Maiden_f2a8th.jpg" alt="Blessed Maiden" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Blessed Maiden</div>
+        <div class="nx-card-genre"></div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">129.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245678/Yamato_kk6rwp.jpg" alt="Yamato" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Yamato</div>
+        <div class="nx-card-genre"></div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">129.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245678/Gilgamesh_pliixw.jpg" alt="Gilgamesh" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Gilgamesh</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">109.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245680/Escanor_sfkvwg.png" alt="Escanor" loading="lazy">
+    <span class="nx-badge nx-badge-hot">SUN</span>
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Escanor</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">129.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245680/Anos_ewipvi.png" alt="Anos" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Anos</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">109.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245675/rimuru_jypone.png" alt="Rimuru" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Rimuru (Slime)</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245673/Gojo_V2_isq2es.jpg" alt="Gojo V2" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Gojo V2</div>
+    <div class="nx-card-genre"></div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245671/Sukuna_V2_lnqjgi.jpg" alt="Sukuna V2" loading="lazy">
+    <span class="nx-badge nx-badge-hot">HOT</span>
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Sukuna V2</div>
+        <div class="nx-card-genre"></div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245669/Sung_V2_ih4kup.jpg" alt="SJW V2" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày SJW V2</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245671/T%E1%BA%A7n_Th%E1%BB%A7y_Ho%C3%A0ng_y1ifiu.png" alt="Tần Thủy Hoàng" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Tần Thủy Hoàng</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★☆</div>
+    <div class="nx-card-price">39.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245668/Cid_Shadow_V1_enwits.jpg" alt="Shadow" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Shadow</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245669/ichigo_j3jsga.png" alt="Ichigo" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Ichigo</div>
+    <div class="nx-card-genre">+ Title, gem, reroll, accessories</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+      </div></div>
+  </section>
+
+  <div class="nx-divider"></div>
+
+  <section class="nx-section">
+    <div class="nx-section-header">
+      <span class="nx-section-title pink">DỊCH VỤ VÀ ITEM</span>
+    </div>
+
+<div class="nx-scroll-wrapper at-start" data-track="track2">
+      <button class="nx-arrow nx-arrow-left hidden" data-dir="left" aria-label="Scroll left">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="nx-arrow nx-arrow-right" data-dir="right" aria-label="Scroll right">
+        <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+      </button>
+
+      <div class="nx-scroll-track" id="track2">
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245669/T%C3%A2n_th%E1%BB%A7_gkymwt.png" alt="Gói Tân Thủ" loading="lazy">
+    <span class="nx-badge nx-badge-hot">HOT</span>
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày GÓI TÂN THỦ</div>
+    <div class="nx-card-genre">Shadow Sword + 3K Race RR</div>
+    <div class="nx-card-genre">500 Clan + 3K Trait</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774254909/Ascend_zd3cid.png" alt="Max Ascend VIII" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Max Ascend VIII</div>
+    <div class="nx-card-genre">Yêu cầu acc trên 5K Level</div>
+    <div class="nx-card-genre">God Tier</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">129.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774254716/Max_LV_dl3zxs.png" alt="Max Level" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">Cày Max Level</div>
+    <div class="nx-card-genre">+ Race RR, Trait RR...</div>
+    <div class="nx-card-genre">+ Gem, Gold</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">79.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245669/Passive_shard_pgzykw.png" alt="Passive Shard" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">600 Passive Shard</div>
+    <div class="nx-card-genre">Nguyên Liệu</div>
+    <div class="nx-card-genre">Nâng cấp sức mạnh</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">10.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245669/boss_ticket_la2rz6.png" alt="Boss Ticket" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">500 Boss Ticket</div>
+    <div class="nx-card-genre">Vé Đánh Boss</div>
+    <div class="nx-card-genre">Cày đồ cực nhanh</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">25.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245671/Key_bat_ki_iwl2pn.png" alt="Key Boss" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">50 Key Bất Kì</div>
+    <div class="nx-card-genre">Chìa Khóa Boss</div>
+    <div class="nx-card-genre">(Ghi tên Key vào ghi chú)</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">8.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245667/Cosmetic_crate_uyg7hx.png" alt="Cosmetic" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">5 Cosmetic</div>
+    <div class="nx-card-genre">Hộp Ngoại Trang</div>
+    <div class="nx-card-genre">Thời trang cực chất</div>
+    <div class="nx-stars">★★★★☆</div>
+    <div class="nx-card-price">13.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245668/aura_crate_duvjbn.png" alt="Aura Chest" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">5 Aura Chest</div>
+    <div class="nx-card-genre">Hộp Hiệu Ứng</div>
+    <div class="nx-card-genre">Hào quang nhân vật</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">18.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245671/5_nguyen_lieu_bat_ky_m7ixvy.png" alt="5 Nguyên Liệu Cùng Loại" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">5 Nguyên Liệu (Cùng Loại)</div>
+    <div class="nx-card-genre">Nguyên liệu bất kì</div>
+    <div class="nx-card-genre">(Ghi tên vào ghi chú)</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">Liên hệ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245666/Nguy%C3%AAn_li%E1%BB%87u_1_c%C3%A1i_ovosp8.png" alt="5 Loại Nguyên Liệu" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">5 Loại Nguyên Liệu Khác Nhau</div>
+    <div class="nx-card-genre">Mỗi loại 1 cái</div>
+    <div class="nx-card-genre">(Ghi tên vào ghi chú)</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">Liên hệ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245665/trait_a3gb10.png" alt="Trait Reroll" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">3000 Trait Reroll</div>
+    <div class="nx-card-genre">Quay Chỉ Số</div>
+    <div class="nx-card-genre">Tối ưu sức mạnh</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">15.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245664/clan_zklv7r.png" alt="Clan Reroll" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">500 Clan Reroll</div>
+    <div class="nx-card-genre">Quay Gia Tộc</div>
+    <div class="nx-card-genre">Săn Clan hiếm</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">13.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245665/race_pfy23c.png" alt="Race Reroll" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">3000 Race Reroll</div>
+    <div class="nx-card-genre">Quay Chủng Tộc</div>
+    <div class="nx-card-genre">Thay đổi ngoại hình & buff</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">15.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245664/Gold_ggtbsn.png" alt="Gold" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">100 Triệu Gold</div>
+    <div class="nx-card-genre">Tiền Vàng</div>
+    <div class="nx-card-genre">Tài nguyên cơ bản</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">15.000đ</div>
+  </div>
+</div>
+
+<div class="nx-card pink">
+  <div class="nx-card-thumb-wrap">
+    <img class="nx-card-thumb" src="https://res.cloudinary.com/dzjdvdhsr/image/upload/v1774245664/Gem_zwzjyh.png" alt="Gem" loading="lazy">
+  </div>
+  <div class="nx-card-body">
+    <div class="nx-card-name">200K Gem</div>
+    <div class="nx-card-genre">Kim Cương</div>
+    <div class="nx-card-genre">Đơn vị tiền tệ cao cấp</div>
+    <div class="nx-stars">★★★★★</div>
+    <div class="nx-card-price">15.000đ</div>
+  </div>
+</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="nx-footer">
+    <strong>MIKORIN</strong> &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; All rights reserved
+  </footer>
+
+  <div class="nx-modal" id="infoModal">
+    <div class="nx-modal-content">
+      <button class="nx-modal-close">&times;</button>
+      <img src="" alt="" class="nx-modal-img">
+      <div class="nx-modal-body">
+        <div class="nx-modal-title">Name</div>
+        <div class="nx-modal-info">Details</div>
+        <div class="nx-modal-price">0đ</div>
+<a href="https://discord.com/invite/VU3KdXEz" target="_blank">
+  <button class="nx-btn-buy">Nhắn tin vào Discord cá nhân của tôi để lên đơn thuê</button>
+</a>
+
+<a href="https://discord.com/invite/qAVSTeWTm9" target="_blank">
+  <button class="nx-btn-buy">Hoặc Join group của tôi rồi lên đơn trong đấy</button>
+</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 1. Logic thanh cuộn (Scroll Track) và kéo thả (Drag-to-scroll)
+    document.querySelectorAll('.nx-scroll-wrapper').forEach(wrapper => {
+      const trackId  = wrapper.dataset.track;
+      const track    = document.getElementById(trackId);
+      const btnLeft  = wrapper.querySelector('.nx-arrow-left');
+      const btnRight = wrapper.querySelector('.nx-arrow-right');
+      const STEP     = 480; // pixel mỗi lần bấm
+
+      if (!track) return;
+
+function updateArrows() {
+  const atStart = track.scrollLeft <= 2;
+  const atEnd   = Math.ceil(track.scrollLeft) + track.clientWidth >= track.scrollWidth - 2;
+
+  btnLeft.classList.toggle('hidden', atStart);
+  btnRight.classList.toggle('hidden', atEnd);
+
+  wrapper.classList.toggle('at-start', atStart);
+  wrapper.classList.toggle('at-end',   atEnd);
+}
+
+      btnLeft.addEventListener('click',  () => track.scrollBy({ left: -STEP, behavior: 'smooth' }));
+      btnRight.addEventListener('click', () => track.scrollBy({ left:  STEP, behavior: 'smooth' }));
+
+      track.addEventListener('scroll', updateArrows, { passive: true });
+      window.addEventListener('resize', updateArrows);
+      window.addEventListener('load',   updateArrows);
+
+      // Kéo thả để cuộn
+      let isDown = false, startX, scrollLeft;
+      track.addEventListener('mousedown', e => {
+        isDown = true;
+        track.style.cursor = 'grabbing';
+        startX = e.pageX - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+      });
+      track.addEventListener('mouseleave', () => { isDown = false; track.style.cursor = ''; });
+      track.addEventListener('mouseup',    () => { isDown = false; track.style.cursor = ''; });
+      track.addEventListener('mousemove',  e => {
+        if (!isDown) return;
+        e.preventDefault();
+        track.scrollLeft = scrollLeft - (e.pageX - track.offsetLeft - startX) * 1.4;
+      });
+
+      // Khởi chạy mũi tên lần đầu
+      setTimeout(updateArrows, 100);
+    });
+
+    // 2. Logic Modal hiển thị chi tiết thẻ
+    const modal = document.getElementById('infoModal');
+    const modalClose = modal.querySelector('.nx-modal-close');
+
+    document.querySelectorAll('.nx-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const img   = card.querySelector('.nx-card-thumb').src;
+        const name  = card.querySelector('.nx-card-name').innerText;
+        const info  = card.querySelector('.nx-card-genre').innerText;
+        const price = card.querySelector('.nx-card-price').innerText;
+
+        modal.querySelector('.nx-modal-img').src = img;
+        modal.querySelector('.nx-modal-title').innerText = name;
+        modal.querySelector('.nx-modal-info').innerText = info;
+        
+        // Chỉ lấy text chính, tránh bị dính giá cũ nếu có
+        modal.querySelector('.nx-modal-price').innerText = price.split('\n')[0];
+
+        modal.classList.add('active');
+      });
+    });
+
+    modalClose.onclick = () => modal.classList.remove('active');
+    window.onclick = (e) => { 
+      if(e.target === modal) modal.classList.remove('active'); 
+    };
+  </script>
+</body>
+</html>
