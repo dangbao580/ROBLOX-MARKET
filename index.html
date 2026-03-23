@@ -918,7 +918,6 @@ function updateArrows() {
         modal.classList.add('active');
       });
     });
-
     modalClose.onclick = () => modal.classList.remove('active');
     window.onclick = (e) => { 
       if(e.target === modal) modal.classList.remove('active'); 
