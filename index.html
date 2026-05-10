@@ -1046,8 +1046,14 @@
       if (!track) return;
 
       function updateArrows() {
-        const atStart = track.scrollLeft <= 2;
-        const atEnd   = Math.ceil(track.scrollLeft) + track.clientWidth >= track.scrollWidth - 2;
+        const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+        const firstCard = track.querySelector('.nx-card');
+        const startOffset = firstCard
+          ? Math.max(0, firstCard.offsetLeft - track.offsetLeft)
+          : 0;
+        const hasOverflow = maxScroll > 2;
+        const atStart = !hasOverflow || track.scrollLeft <= startOffset + 2;
+        const atEnd   = !hasOverflow || Math.ceil(track.scrollLeft) >= maxScroll - 2;
 
         btnLeft.classList.toggle('hidden', atStart);
         btnRight.classList.toggle('hidden', atEnd);
